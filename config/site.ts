@@ -6,5 +6,6 @@ export const siteConfig = {
   navItems: [
     { label: "Pokédex", href: "/pokemon" },
     { label: "Equipos", href: "/equipos" },
+    { label: "Asistente", href: "/chat" },
   ],
 };
