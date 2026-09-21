@@ -67,7 +67,7 @@ const base = createMcpHandler((server) => {
     async (args, ctx) => asContent(await toolRunners.agregarAEquipo(userIdOf(ctx), args)),
   );
 }, {
-  serverInfo: { name: "pokeapi-fabara", version: "1.0.0" },
+  serverInfo: { name: "pokeapi-febara", version: "1.0.0" },
   instructions:
     "Herramientas para consultar la PokéAPI y gestionar los equipos Pokémon del usuario autenticado. Usa analizarEquipo antes de recomendar cambios.",
 });

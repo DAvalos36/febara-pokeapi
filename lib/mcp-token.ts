@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 
-const AUDIENCE = "pokeapi-fabara-mcp";
+const AUDIENCE = "pokeapi-febara-mcp";
 const LIFETIME = "90d";
 
 function secret() {
