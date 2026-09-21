@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  captures Capture[]
+  teams    Team[]
+}
+
+model Capture {
+  id        String   @id @default(cuid())
+  pokemonId Int
+  name      String
+  nickname  String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  userId  String
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members TeamMember[]
+
+  @@unique([userId, pokemonId])
+  @@index([userId])
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  userId  String
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members TeamMember[]
+
+  @@index([userId])
+}
+
+model TeamMember {
+  id   String @id @default(cuid())
+  slot Int
+
+  teamId    String
+  team      Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  captureId String
+  capture   Capture @relation(fields: [captureId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, slot])
+  @@unique([teamId, captureId])
+}
