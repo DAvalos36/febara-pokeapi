@@ -1,6 +1,18 @@
 "use client";
 
-import { Button, Input, Label, Spinner, TextField } from "@heroui/react";
+import {
+  Alert,
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  EmptyState,
+  Form,
+  Input,
+  Label,
+  Spinner,
+  TextField,
+} from "@heroui/react";
 import { useRef, useState } from "react";
 
 type Message = {
@@ -83,62 +95,81 @@ export function ChatPanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex min-h-[320px] flex-col gap-3 rounded-xl border border-separator p-4">
-        {messages.length === 0 ? (
-          <div className="flex flex-col gap-3">
-            <p className="text-muted">
-              Pregúntame por tus equipos. Consulto la PokéAPI y tu base de datos antes de
-              responder.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {SUGERENCIAS.map((texto) => (
-                <Button key={texto} size="sm" variant="secondary" onPress={() => send(texto)}>
-                  {texto}
-                </Button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={message.role === "user" ? "self-end text-right" : "self-start"}
-            >
+      <Card>
+        <Card.Content className="flex min-h-[340px] flex-col gap-4 p-4">
+          {messages.length === 0 ? (
+            <EmptyState className="my-auto">
+              <p className="font-medium">Pregúntame por tus equipos</p>
+              <p className="text-sm text-muted">
+                Consulto la PokéAPI y tu base de datos antes de responder.
+              </p>
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {SUGERENCIAS.map((texto) => (
+                  <Button key={texto} size="sm" variant="secondary" onPress={() => send(texto)}>
+                    {texto}
+                  </Button>
+                ))}
+              </div>
+            </EmptyState>
+          ) : (
+            messages.map((message) => (
               <div
-                className={`inline-block max-w-prose whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm ${
-                  message.role === "user"
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-default/20 text-foreground"
+                key={message.id}
+                className={`flex items-start gap-2 ${
+                  message.role === "user" ? "flex-row-reverse" : ""
                 }`}
               >
-                {textOf(message)}
+                <Avatar size="sm">
+                  <Avatar.Fallback>{message.role === "user" ? "Tú" : "IA"}</Avatar.Fallback>
+                </Avatar>
+
+                <div className={`flex flex-col gap-1 ${message.role === "user" ? "items-end" : ""}`}>
+                  <div
+                    className={`max-w-prose whitespace-pre-wrap rounded-2xl px-4 py-2 text-sm ${
+                      message.role === "user"
+                        ? "bg-accent text-accent-foreground"
+                        : "bg-default/20 text-foreground"
+                    }`}
+                  >
+                    {textOf(message)}
+                  </div>
+
+                  {message.herramientas?.length ? (
+                    <div className="flex flex-wrap gap-1">
+                      {Array.from(new Set(message.herramientas)).map((name) => (
+                        <Chip key={name} size="sm" variant="secondary">
+                          {name}
+                        </Chip>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </div>
-              {message.herramientas?.length ? (
-                <p className="mt-1 text-xs text-muted">
-                  Consultó: {Array.from(new Set(message.herramientas)).join(", ")}
-                </p>
-              ) : null}
+            ))
+          )}
+
+          {pending ? (
+            <div className="flex items-center gap-2 text-sm text-muted">
+              <Spinner size="sm" />
+              Pensando…
             </div>
-          ))
-        )}
+          ) : null}
 
-        {pending ? (
-          <div className="flex items-center gap-2 text-sm text-muted">
-            <Spinner size="sm" />
-            Pensando…
-          </div>
-        ) : null}
-
-        <div ref={endRef} />
-      </div>
+          <div ref={endRef} />
+        </Card.Content>
+      </Card>
 
       {error ? (
-        <p className="text-sm text-danger" role="alert">
-          {error}
-        </p>
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Title>No se pudo responder</Alert.Title>
+            <Alert.Description>{error}</Alert.Description>
+          </Alert.Content>
+        </Alert>
       ) : null}
 
-      <form className="flex items-end gap-2" onSubmit={onSubmit}>
+      <Form className="flex flex-row items-end gap-2" onSubmit={onSubmit}>
         <TextField isRequired className="w-full" name="mensaje">
           <Label className="sr-only">Mensaje</Label>
           <Input placeholder="¿Qué le falta a mi equipo?" />
@@ -146,7 +177,7 @@ export function ChatPanel() {
         <Button isPending={pending} type="submit">
           Enviar
         </Button>
-      </form>
+      </Form>
     </div>
   );
 }

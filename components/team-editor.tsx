@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Input, Label, TextField } from "@heroui/react";
+import { Alert, Button, Card, Chip, EmptyState, Form, Input, Label, TextField } from "@heroui/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -125,9 +125,9 @@ export function TeamEditor({
           </h2>
           <div className="flex items-center gap-2">
             {error ? (
-              <span className="text-sm text-danger" role="alert">
+              <Chip color="danger" size="sm" variant="soft">
                 {error}
-              </span>
+              </Chip>
             ) : null}
             <Button isDisabled={!dirty} isPending={saving} size="sm" onPress={save}>
               Guardar
@@ -142,11 +142,11 @@ export function TeamEditor({
             return (
               <li key={slot}>
                 {member ? (
-                  <button
-                    className="flex w-full flex-col items-center gap-1 rounded-xl border border-separator p-2 transition-colors hover:border-danger"
-                    title="Quitar del equipo"
-                    type="button"
-                    onClick={() => remove(member.pokemonId)}
+                  <Button
+                    aria-label={`Quitar a ${member.nickname ?? member.name} del equipo`}
+                    className="h-auto w-full flex-col items-center gap-1 rounded-xl border border-separator p-2 hover:border-danger"
+                    variant="ghost"
+                    onPress={() => remove(member.pokemonId)}
                   >
                     <Image
                       alt={member.name}
@@ -163,7 +163,7 @@ export function TeamEditor({
                         <TypeBadge key={type} type={type} />
                       ))}
                     </span>
-                  </button>
+                  </Button>
                 ) : (
                   <div className="flex h-[124px] items-center justify-center rounded-xl border border-dashed border-separator text-xs text-muted">
                     Vacío
@@ -178,7 +178,8 @@ export function TeamEditor({
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Cobertura de tipos</h2>
         <p className="text-sm text-muted">
-          Rojo: dos o más miembros reciben daño doble. Verde: alguien resiste o es inmune.
+          Cada tipo muestra débiles/resistentes. Rojo: dos o más miembros reciben daño doble.
+          Verde: alguien resiste o es inmune.
         </p>
 
         <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
@@ -188,22 +189,18 @@ export function TeamEditor({
             const safe = entry.resistantMembers.length + entry.immuneMembers.length > 0;
 
             return (
-              <li
-                key={entry.type}
-                className={`rounded-lg border p-2 text-xs ${
-                  shared
-                    ? "border-danger bg-danger/10"
-                    : weak
-                      ? "border-warning bg-warning/10"
-                      : safe
-                        ? "border-success bg-success/10"
-                        : "border-separator"
-                }`}
-              >
-                <span className="font-medium">{TYPE_LABELS[entry.type] ?? entry.type}</span>
-                <span className="block text-muted">
-                  {entry.weakMembers.length} débil · {entry.resistantMembers.length} resiste
-                </span>
+              <li key={entry.type}>
+                <Chip
+                  className="w-full justify-between"
+                  color={shared ? "danger" : weak ? "warning" : safe ? "success" : "default"}
+                  size="md"
+                  variant={shared || weak || safe ? "soft" : "tertiary"}
+                >
+                  <span className="font-medium">{TYPE_LABELS[entry.type] ?? entry.type}</span>
+                  <span className="tabular-nums opacity-70">
+                    {entry.weakMembers.length}/{entry.resistantMembers.length}
+                  </span>
+                </Chip>
               </li>
             );
           })}
@@ -235,7 +232,7 @@ export function TeamEditor({
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Buscar en la Pokédex</h2>
 
-        <form className="flex items-end gap-2" onSubmit={search}>
+        <Form className="flex flex-row items-end gap-2" onSubmit={search}>
           <TextField className="w-full max-w-xs" name="q" type="search">
             <Label>Nombre</Label>
             <Input placeholder="pikachu, char, eevee…" />
@@ -243,16 +240,23 @@ export function TeamEditor({
           <Button isPending={searching} type="submit">
             Buscar
           </Button>
-        </form>
+        </Form>
 
         {full ? (
-          <p className="text-sm text-warning">
-            El equipo está completo. Quita alguno para añadir otro.
-          </p>
+          <Alert status="warning">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>Equipo completo</Alert.Title>
+              <Alert.Description>Quita algún Pokémon para añadir otro.</Alert.Description>
+            </Alert.Content>
+          </Alert>
         ) : null}
 
         {results.length === 0 ? (
-          <p className="text-sm text-muted">Busca un Pokémon para añadirlo al equipo.</p>
+          <EmptyState>
+            <p className="font-medium">Sin resultados</p>
+            <p className="text-sm text-muted">Busca un Pokémon para añadirlo al equipo.</p>
+          </EmptyState>
         ) : (
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
             {results.map((pokemon) => {

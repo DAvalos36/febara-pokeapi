@@ -66,11 +66,13 @@ export function Navbar({ email }: { email?: string }) {
               <Button size="sm" variant="tertiary" onPress={logout}>
                 Salir
               </Button>
-              <button
+              <Button
                 aria-expanded={isMenuOpen}
                 aria-label="Abrir menú"
-                className="md:hidden p-2"
-                onClick={() => setMenuOpen(!isMenuOpen)}
+                className="md:hidden"
+                size="sm"
+                variant="ghost"
+                onPress={() => setMenuOpen(!isMenuOpen)}
               >
                 <svg
                   className="h-6 w-6"
@@ -89,7 +91,7 @@ export function Navbar({ email }: { email?: string }) {
                     strokeWidth={2}
                   />
                 </svg>
-              </button>
+              </Button>
             </>
           ) : null}
         </div>

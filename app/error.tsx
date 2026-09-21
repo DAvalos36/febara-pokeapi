@@ -1,31 +1,23 @@
 "use client";
 
+import { Alert, Button } from "@heroui/react";
 import { useEffect } from "react";
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error;
-  reset: () => void;
-}) {
+export default function Error({ error, reset }: { error: Error; reset: () => void }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    /* eslint-disable no-console */
     console.error(error);
   }, [error]);
 
   return (
-    <div>
-      <h2>Something went wrong!</h2>
-      <button
-        onClick={
-          // Attempt to recover by trying to re-render the segment
-          () => reset()
-        }
-      >
-        Try again
-      </button>
-    </div>
+    <section className="flex flex-col items-start gap-4 py-10">
+      <Alert status="danger">
+        <Alert.Indicator />
+        <Alert.Content>
+          <Alert.Title>Algo salió mal</Alert.Title>
+          <Alert.Description>{error.message || "Error inesperado."}</Alert.Description>
+        </Alert.Content>
+      </Alert>
+      <Button onPress={reset}>Reintentar</Button>
+    </section>
   );
 }

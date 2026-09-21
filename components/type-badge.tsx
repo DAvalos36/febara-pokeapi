@@ -1,3 +1,5 @@
+import { Chip } from "@heroui/react";
+
 import { TYPE_LABELS } from "@/lib/pokemon-types";
 
 const TYPE_COLORS: Record<string, string> = {
@@ -21,18 +23,10 @@ const TYPE_COLORS: Record<string, string> = {
   fairy: "bg-rose-400/20 text-rose-700 dark:text-rose-300",
 };
 
-export function TypeBadge({
-  type,
-  className,
-}: {
-  type: string;
-  className?: string;
-}) {
+export function TypeBadge({ type, className }: { type: string; className?: string }) {
   return (
-    <span
-      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_COLORS[type] ?? "bg-default/20"} ${className ?? ""}`}
-    >
+    <Chip className={`${TYPE_COLORS[type] ?? ""} ${className ?? ""}`} size="sm" variant="soft">
       {TYPE_LABELS[type] ?? type}
-    </span>
+    </Chip>
   );
 }

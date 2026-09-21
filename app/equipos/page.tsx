@@ -1,4 +1,4 @@
-import { Card } from "@heroui/react";
+import { Card, Chip, EmptyState, Label, Meter } from "@heroui/react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -31,7 +31,10 @@ export default async function EquiposPage() {
       <CreateTeamForm />
 
       {teams.length === 0 ? (
-        <p className="text-muted">Todavía no tienes ningún equipo.</p>
+        <EmptyState>
+          <p className="font-medium">Sin equipos</p>
+          <p className="text-sm text-muted">Crea uno arriba para empezar a armarlo.</p>
+        </EmptyState>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {teams.map((team) => (
@@ -40,14 +43,29 @@ export default async function EquiposPage() {
                 <Card className="h-full transition-colors hover:border-accent">
                   <Card.Header>
                     <Card.Title>{team.name}</Card.Title>
-                    <Card.Description>{team.members.length}/6 Pokémon</Card.Description>
                   </Card.Header>
-                  <Card.Content className="flex flex-wrap gap-1">
-                    {team.members.map((member) => (
-                      <span key={member.id} className="text-xs capitalize text-muted">
-                        {member.nickname ?? member.name}
-                      </span>
-                    ))}
+                  <Card.Content className="flex flex-col gap-3">
+                    <Meter maxValue={6} value={team.members.length}>
+                      <Label className="text-sm text-muted">Pokémon</Label>
+                      <Meter.Output className="text-sm tabular-nums">
+                        {team.members.length}/6
+                      </Meter.Output>
+                      <Meter.Track>
+                        <Meter.Fill />
+                      </Meter.Track>
+                    </Meter>
+
+                    {team.members.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {team.members.map((member) => (
+                          <Chip key={member.id} className="capitalize" size="sm" variant="soft">
+                            {member.nickname ?? member.name}
+                          </Chip>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted">Equipo vacío</span>
+                    )}
                   </Card.Content>
                 </Card>
               </Link>
