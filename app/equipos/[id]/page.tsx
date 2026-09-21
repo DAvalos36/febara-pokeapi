@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { TeamEditor } from "@/components/team-editor";
-import type { CaptureOption } from "@/components/team-editor";
+import type { TeamPokemon } from "@/components/team-editor";
 import { currentUser } from "@/lib/current-user";
 import { db } from "@/lib/db";
 import { getPokemon, getTypeChart } from "@/lib/pokeapi";
@@ -21,25 +21,22 @@ export default async function EquipoPage({ params }: { params: Promise<{ id: str
 
   if (!team) notFound();
 
-  const [captures, chart] = await Promise.all([
-    db.capture.findMany({ where: { userId: session.userId }, orderBy: { createdAt: "desc" } }),
+  const [chart, members] = await Promise.all([
     getTypeChart(),
+    Promise.all(
+      team.members.map(async (member): Promise<TeamPokemon> => {
+        const pokemon = await getPokemon(member.pokemonId);
+
+        return {
+          pokemonId: member.pokemonId,
+          name: member.name,
+          nickname: member.nickname,
+          sprite: pokemon.sprite,
+          types: pokemon.types,
+        };
+      }),
+    ),
   ]);
-
-  const options: CaptureOption[] = await Promise.all(
-    captures.map(async (capture) => {
-      const pokemon = await getPokemon(capture.pokemonId);
-
-      return {
-        id: capture.id,
-        pokemonId: capture.pokemonId,
-        name: capture.name,
-        nickname: capture.nickname,
-        sprite: pokemon.sprite,
-        types: pokemon.types,
-      };
-    }),
-  );
 
   return (
     <section className="flex flex-col gap-6">
@@ -50,12 +47,7 @@ export default async function EquipoPage({ params }: { params: Promise<{ id: str
         <h1 className="text-2xl font-semibold">{team.name}</h1>
       </header>
 
-      <TeamEditor
-        captures={options}
-        chart={chart}
-        initialMemberIds={team.members.map((member) => member.captureId)}
-        teamId={team.id}
-      />
+      <TeamEditor chart={chart} initialMembers={members} teamId={team.id} />
     </section>
   );
 }

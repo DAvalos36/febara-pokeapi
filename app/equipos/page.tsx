@@ -16,7 +16,7 @@ export default async function EquiposPage() {
   const teams = await db.team.findMany({
     where: { userId: session.userId },
     orderBy: { createdAt: "desc" },
-    include: { members: { include: { capture: true }, orderBy: { slot: "asc" } } },
+    include: { members: { orderBy: { slot: "asc" } } },
   });
 
   return (
@@ -45,7 +45,7 @@ export default async function EquiposPage() {
                   <Card.Content className="flex flex-wrap gap-1">
                     {team.members.map((member) => (
                       <span key={member.id} className="text-xs capitalize text-muted">
-                        {member.capture.nickname ?? member.capture.name}
+                        {member.nickname ?? member.name}
                       </span>
                     ))}
                   </Card.Content>

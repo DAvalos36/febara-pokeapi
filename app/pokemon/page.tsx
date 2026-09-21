@@ -2,10 +2,8 @@ import { Card } from "@heroui/react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
-import { CaptureButton } from "@/components/capture-button";
 import { TypeBadge } from "@/components/type-badge";
 import { currentUser } from "@/lib/current-user";
-import { db } from "@/lib/db";
 import { listPokemon, searchPokemon } from "@/lib/pokeapi";
 
 export const metadata = { title: "Pokédex" };
@@ -24,27 +22,17 @@ export default async function PokedexPage({
   const { q = "", page = "1" } = await searchParams;
   const pageNumber = Math.max(1, Number(page) || 1);
 
-  const [results, captured] = await Promise.all([
-    q
-      ? searchPokemon(q, PAGE_SIZE).then((list) => ({
-          count: list.length,
-          results: list,
-        }))
-      : listPokemon(PAGE_SIZE, (pageNumber - 1) * PAGE_SIZE),
-    db.capture.findMany({
-      where: { userId: session.userId },
-      select: { pokemonId: true },
-    }),
-  ]);
+  const results = q
+    ? await searchPokemon(q, PAGE_SIZE).then((list) => ({ count: list.length, results: list }))
+    : await listPokemon(PAGE_SIZE, (pageNumber - 1) * PAGE_SIZE);
 
-  const capturedIds = new Set(captured.map((entry) => entry.pokemonId));
   const totalPages = q ? 1 : Math.ceil(results.count / PAGE_SIZE);
 
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold">Pokédex</h1>
-        <p className="text-muted">Busca Pokémon y añádelos a tu colección.</p>
+        <p className="text-muted">Consulta cualquier Pokémon. Para armar equipos, entra en uno desde Equipos.</p>
       </header>
 
       <form action="/pokemon" className="flex gap-2">
@@ -89,12 +77,6 @@ export default async function PokedexPage({
                     <TypeBadge key={type} type={type} />
                   ))}
                 </Card.Content>
-                <Card.Footer>
-                  <CaptureButton
-                    captured={capturedIds.has(pokemon.id)}
-                    pokemonId={pokemon.id}
-                  />
-                </Card.Footer>
               </Card>
             </li>
           ))}

@@ -13,7 +13,7 @@ export async function GET() {
     where: { userId: session.userId },
     orderBy: { createdAt: "desc" },
     include: {
-      members: { include: { capture: true }, orderBy: { slot: "asc" } },
+      members: { orderBy: { slot: "asc" } },
     },
   });
 
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
   const team = await db.team.create({
     data: { userId: session.userId, name: name.trim().slice(0, 60) },
-    include: { members: { include: { capture: true } } },
+    include: { members: true },
   });
 
   return NextResponse.json(team, { status: 201 });

@@ -1,17 +1,16 @@
 "use client";
 
-import { Button, Card } from "@heroui/react";
+import { Button, Card, Input, Label, TextField } from "@heroui/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { TypeBadge } from "@/components/type-badge";
-import { TYPE_LABELS } from "@/lib/pokemon-types";
 import { coverageGaps, teamCoverage } from "@/lib/coverage";
-import type { TypeChart } from "@/lib/pokeapi";
+import type { PokemonSummary, TypeChart } from "@/lib/pokeapi";
+import { TYPE_LABELS } from "@/lib/pokemon-types";
 
-export type CaptureOption = {
-  id: string;
+export type TeamPokemon = {
   pokemonId: number;
   name: string;
   nickname: string | null;
@@ -23,61 +22,97 @@ const MAX_TEAM_SIZE = 6;
 
 export function TeamEditor({
   teamId,
-  initialMemberIds,
-  captures,
+  initialMembers,
   chart,
 }: {
   teamId: string;
-  initialMemberIds: string[];
-  captures: CaptureOption[];
+  initialMembers: TeamPokemon[];
   chart: TypeChart;
 }) {
   const router = useRouter();
-  const [memberIds, setMemberIds] = useState(initialMemberIds);
-  const [pending, setPending] = useState(false);
+  const [members, setMembers] = useState(initialMembers);
+  const [results, setResults] = useState<PokemonSummary[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const byId = useMemo(() => new Map(captures.map((entry) => [entry.id, entry])), [captures]);
-  const members = memberIds.map((id) => byId.get(id)).filter(Boolean) as CaptureOption[];
-
-  const coverage = useMemo(
-    () => teamCoverage(chart, members.map((entry) => ({ name: entry.name, types: entry.types }))),
-    [chart, members],
-  );
-
+  const coverage = useMemo(() => teamCoverage(chart, members), [chart, members]);
   const gaps = useMemo(() => coverageGaps(coverage), [coverage]);
-  const dirty = memberIds.join() !== initialMemberIds.join();
 
-  function toggle(id: string) {
-    setMemberIds((current) =>
-      current.includes(id)
-        ? current.filter((entry) => entry !== id)
-        : current.length < MAX_TEAM_SIZE
-          ? [...current, id]
-          : current,
+  const dirty =
+    members.map((entry) => entry.pokemonId).join() !==
+    initialMembers.map((entry) => entry.pokemonId).join();
+
+  const full = members.length >= MAX_TEAM_SIZE;
+
+  async function search(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSearching(true);
+    setError(null);
+
+    const term = new FormData(event.currentTarget).get("q");
+
+    const response = await fetch(`/api/pokemon?q=${encodeURIComponent(String(term ?? ""))}`).catch(
+      () => null,
+    );
+
+    if (!response?.ok) {
+      setError("No se pudo consultar la Pokédex");
+      setSearching(false);
+
+      return;
+    }
+
+    setResults(await response.json());
+    setSearching(false);
+  }
+
+  function add(pokemon: PokemonSummary) {
+    setMembers((current) =>
+      current.length >= MAX_TEAM_SIZE || current.some((e) => e.pokemonId === pokemon.id)
+        ? current
+        : [
+            ...current,
+            {
+              pokemonId: pokemon.id,
+              name: pokemon.name,
+              nickname: null,
+              sprite: pokemon.sprite,
+              types: pokemon.types,
+            },
+          ],
     );
   }
 
+  function remove(pokemonId: number) {
+    setMembers((current) => current.filter((entry) => entry.pokemonId !== pokemonId));
+  }
+
   async function save() {
-    setPending(true);
+    setSaving(true);
     setError(null);
 
     const response = await fetch(`/api/equipos/${teamId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ captureIds: memberIds }),
+      body: JSON.stringify({
+        members: members.map((entry) => ({
+          pokemonId: entry.pokemonId,
+          nickname: entry.nickname,
+        })),
+      }),
     }).catch(() => null);
 
     if (!response?.ok) {
       const message = await response?.json().then((data) => data.error as string, () => null);
 
       setError(message ?? "No se pudo guardar");
-      setPending(false);
+      setSaving(false);
 
       return;
     }
 
-    setPending(false);
+    setSaving(false);
     router.refresh();
   }
 
@@ -94,7 +129,7 @@ export function TeamEditor({
                 {error}
               </span>
             ) : null}
-            <Button isDisabled={!dirty} isPending={pending} size="sm" onPress={save}>
+            <Button isDisabled={!dirty} isPending={saving} size="sm" onPress={save}>
               Guardar
             </Button>
           </div>
@@ -111,7 +146,7 @@ export function TeamEditor({
                     className="flex w-full flex-col items-center gap-1 rounded-xl border border-separator p-2 transition-colors hover:border-danger"
                     title="Quitar del equipo"
                     type="button"
-                    onClick={() => toggle(member.id)}
+                    onClick={() => remove(member.pokemonId)}
                   >
                     <Image
                       alt={member.name}
@@ -120,12 +155,17 @@ export function TeamEditor({
                       src={member.sprite}
                       width={64}
                     />
-                    <span className="truncate text-xs capitalize">
+                    <span className="w-full truncate text-center text-xs capitalize">
                       {member.nickname ?? member.name}
+                    </span>
+                    <span className="flex flex-wrap justify-center gap-0.5">
+                      {member.types.map((type) => (
+                        <TypeBadge key={type} type={type} />
+                      ))}
                     </span>
                   </button>
                 ) : (
-                  <div className="flex h-[104px] items-center justify-center rounded-xl border border-dashed border-separator text-xs text-muted">
+                  <div className="flex h-[124px] items-center justify-center rounded-xl border border-dashed border-separator text-xs text-muted">
                     Vacío
                   </div>
                 )}
@@ -193,49 +233,58 @@ export function TeamEditor({
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">Tu colección</h2>
+        <h2 className="text-lg font-semibold">Buscar en la Pokédex</h2>
 
-        {captures.length === 0 ? (
-          <p className="text-muted">
-            Todavía no has capturado nada. Ve a la Pokédex para empezar.
+        <form className="flex items-end gap-2" onSubmit={search}>
+          <TextField className="w-full max-w-xs" name="q" type="search">
+            <Label>Nombre</Label>
+            <Input placeholder="pikachu, char, eevee…" />
+          </TextField>
+          <Button isPending={searching} type="submit">
+            Buscar
+          </Button>
+        </form>
+
+        {full ? (
+          <p className="text-sm text-warning">
+            El equipo está completo. Quita alguno para añadir otro.
           </p>
+        ) : null}
+
+        {results.length === 0 ? (
+          <p className="text-sm text-muted">Busca un Pokémon para añadirlo al equipo.</p>
         ) : (
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-            {captures.map((capture) => {
-              const selected = memberIds.includes(capture.id);
-              const full = memberIds.length >= MAX_TEAM_SIZE;
+            {results.map((pokemon) => {
+              const already = members.some((entry) => entry.pokemonId === pokemon.id);
 
               return (
-                <li key={capture.id}>
-                  <Card
-                    className={`h-full transition-opacity ${selected ? "ring-2 ring-accent" : ""} ${
-                      !selected && full ? "opacity-40" : ""
-                    }`}
-                  >
+                <li key={pokemon.id}>
+                  <Card className={`h-full ${!already && full ? "opacity-40" : ""}`}>
                     <Card.Content className="flex flex-col items-center gap-1 p-3">
                       <Image
-                        alt={capture.name}
+                        alt={pokemon.name}
                         className="h-16 w-16 object-contain"
                         height={64}
-                        src={capture.sprite}
+                        src={pokemon.sprite}
                         width={64}
                       />
-                      <span className="truncate text-xs capitalize">
-                        {capture.nickname ?? capture.name}
+                      <span className="w-full truncate text-center text-xs capitalize">
+                        {pokemon.name}
                       </span>
                       <div className="flex flex-wrap justify-center gap-1">
-                        {capture.types.map((type) => (
+                        {pokemon.types.map((type) => (
                           <TypeBadge key={type} type={type} />
                         ))}
                       </div>
                       <Button
                         className="mt-1 w-full"
-                        isDisabled={!selected && full}
+                        isDisabled={already || full}
                         size="sm"
-                        variant={selected ? "secondary" : "primary"}
-                        onPress={() => toggle(capture.id)}
+                        variant={already ? "secondary" : "primary"}
+                        onPress={() => add(pokemon)}
                       >
-                        {selected ? "Quitar" : "Añadir"}
+                        {already ? "En el equipo" : "Añadir"}
                       </Button>
                     </Card.Content>
                   </Card>
