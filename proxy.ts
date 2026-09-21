@@ -33,6 +33,7 @@ export const config = {
     "/equipos/:path*",
     "/pokemon/:path*",
     "/chat/:path*",
+    "/mcp",
     "/login",
     "/registro",
   ],

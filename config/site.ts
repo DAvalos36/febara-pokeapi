@@ -7,5 +7,6 @@ export const siteConfig = {
     { label: "Pokédex", href: "/pokemon" },
     { label: "Equipos", href: "/equipos" },
     { label: "Asistente", href: "/chat" },
+    { label: "MCP", href: "/mcp" },
   ],
 };
