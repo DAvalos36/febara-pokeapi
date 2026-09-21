@@ -13,7 +13,7 @@ export default async function LoginPage({
     <section className="flex justify-center py-10">
       <AuthForm
         mode="login"
-        next={next?.startsWith("/") ? next : "/coleccion"}
+        next={next?.startsWith("/") ? next : "/equipos"}
       />
     </section>
   );

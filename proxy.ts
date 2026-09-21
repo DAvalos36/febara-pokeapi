@@ -13,7 +13,7 @@ export async function proxy(request: NextRequest) {
   );
 
   if (session && PUBLIC_ROUTES.includes(pathname)) {
-    return NextResponse.redirect(new URL("/coleccion", request.url));
+    return NextResponse.redirect(new URL("/equipos", request.url));
   }
 
   if (!session && !PUBLIC_ROUTES.includes(pathname)) {

@@ -5,7 +5,7 @@ export const metadata = { title: "Crear cuenta" };
 export default function RegistroPage() {
   return (
     <section className="flex justify-center py-10">
-      <AuthForm mode="registro" next="/coleccion" />
+      <AuthForm mode="registro" next="/equipos" />
     </section>
   );
 }

@@ -57,7 +57,7 @@ export default async function PokedexPage({
         </EmptyState>
       ) : (
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {results.results.map((pokemon) => (
+          {results.results.map((pokemon, index) => (
             <li key={pokemon.id}>
               <Card className="h-full">
                 <Card.Header className="items-center">
@@ -66,6 +66,7 @@ export default async function PokedexPage({
                       alt={pokemon.name}
                       className="mx-auto h-28 w-28 object-contain"
                       height={112}
+                      priority={index < 4}
                       src={pokemon.sprite}
                       width={112}
                     />
