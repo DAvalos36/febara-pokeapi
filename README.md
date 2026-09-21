@@ -6,6 +6,8 @@ con un asistente de IA que consulta tus datos reales antes de responder.
 Prueba técnica full-stack. Incluye autenticación, integración con la PokéAPI,
 persistencia y los tres bonus opcionales (LLM, MCP y análisis inteligente).
 
+![Constructor de equipos con el análisis de cobertura de tipos](https://i.ibb.co/SwB6NjBP/brave-screenshot-localhost.png)
+
 ## La idea
 
 La app resuelve el problema que un entrenador tiene de
@@ -51,6 +53,8 @@ Sin la key de Google todo funciona menos el asistente, que responde 503 con un
 mensaje explicando qué falta.
 
 ## Qué hace
+
+![Pantalla de registro](https://i.ibb.co/DcZB2Kh/brave-screenshot-localhost-1.png)
 
 **Pokédex** (`/pokemon`) — Buscador con paginación sobre la PokéAPI. Las
 respuestas se cachean 24 h con `revalidate`, así que navegar no repite
@@ -155,6 +159,12 @@ claude mcp add --transport http pokedex http://localhost:3000/api/mcp \
 La autenticación es por bearer token (`withMcpAuth`), y el `userId` sale del
 token firmado. Sin token, el endpoint responde 401 con la cabecera
 `WWW-Authenticate` que marca el estándar.
+
+![Servidor MCP conectado y autenticado en Claude Code](https://i.ibb.co/gbrgJnTv/Captura-de-pantalla-2026-09-21-a-la-s-5-16-04-p-m.png)
+
+Una vez conectado, el asistente analiza los equipos desde fuera de la app:
+
+![Claude Code analizando un equipo con las herramientas del servidor](https://i.ibb.co/XZ1BhjYd/Captura-de-pantalla-2026-09-21-a-la-s-5-15-44-p-m.png)
 
 ### Análisis inteligente
 
