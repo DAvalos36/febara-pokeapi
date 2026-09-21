@@ -1,3 +1,5 @@
+import { OFFICIAL_TYPES } from "./pokemon-types";
+
 const BASE = "https://pokeapi.co/api/v2";
 const REVALIDATE = 60 * 60 * 24;
 
@@ -113,7 +115,7 @@ export async function getTypeChart(): Promise<TypeChart> {
   );
   const names = results
     .map((entry) => entry.name)
-    .filter((name) => name !== "unknown");
+    .filter((name) => OFFICIAL_TYPES.includes(name));
 
   const relations = await Promise.all(
     names.map(async (name) => {

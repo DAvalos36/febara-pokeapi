@@ -1,3 +1,5 @@
+import { TYPE_LABELS } from "@/lib/pokemon-types";
+
 const TYPE_COLORS: Record<string, string> = {
   normal: "bg-stone-400/20 text-stone-700 dark:text-stone-300",
   fire: "bg-orange-500/20 text-orange-700 dark:text-orange-300",
@@ -17,27 +19,6 @@ const TYPE_COLORS: Record<string, string> = {
   dark: "bg-neutral-700/20 text-neutral-700 dark:text-neutral-300",
   steel: "bg-slate-400/20 text-slate-700 dark:text-slate-300",
   fairy: "bg-rose-400/20 text-rose-700 dark:text-rose-300",
-};
-
-export const TYPE_LABELS: Record<string, string> = {
-  normal: "Normal",
-  fire: "Fuego",
-  water: "Agua",
-  electric: "Eléctrico",
-  grass: "Planta",
-  ice: "Hielo",
-  fighting: "Lucha",
-  poison: "Veneno",
-  ground: "Tierra",
-  flying: "Volador",
-  psychic: "Psíquico",
-  bug: "Bicho",
-  rock: "Roca",
-  ghost: "Fantasma",
-  dragon: "Dragón",
-  dark: "Siniestro",
-  steel: "Acero",
-  fairy: "Hada",
 };
 
 export function TypeBadge({
